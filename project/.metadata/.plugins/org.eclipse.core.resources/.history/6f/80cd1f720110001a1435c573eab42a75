@@ -63,7 +63,7 @@ public class InvertedIndices {
 //        }
 //    }
 
-	public static class TokenizerMapper extends Mapper<Object, Text, Text, Text> {
+	public static class TokenizerMapper extends Mapper<Object, Text, Text, IntWritable> {
 //		input: the content of the file
 //		output: <word, filename>, 1
 		private FileSplit split;
@@ -79,51 +79,55 @@ public class InvertedIndices {
 			list.removeAll(Arrays.asList("", null));
 			for (String word : list) {
 				newKey.set(word + "," + filename);
-				context.write(newKey, new Text("1"));
+				context.write(newKey, new IntWritable(1));
 			}
 		}
 	}
 	
-    public static class Combine extends Reducer<Text, Text, Text, Text> {
-//		input: <word, filename>, 1
-//		output: word, <filename, n>
-        private Text info = new Text();
-        public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
-            int sum = 0;
-            for (Text value : values) {
-            	sum += Integer.parseInt(value.toString());
-            }
-            String[] splitIndex = key.toString().split(",");
-            String word = splitIndex[0];
-            String filename = splitIndex[1];
-            info.set(filename.toString() + " : " + sum);
-            context.write(new Text(word.toString()), info);
-        }
-    }
- 
-	public static class IntSumReducer extends Reducer<Text, Text, Text, Text> {
-		private Text fileList = new Text();
-		public void reduce(Text key, Iterable<Text> value, Context context) throws IOException, InterruptedException {
-	        String result = new String();
-            for (Text filePair : value) {
-            	result += filePair.toString() + "; ";
-            } 
-            fileList.set(result);
-			context.write(new Text(key), fileList);
-		}
-	}
-	
-//	public static class IntSumReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
-//		 
-//		public void reduce(Text key, Iterable<IntWritable> value, Context context)
-//				throws IOException, InterruptedException {
-//			int sum = 0;
-//			for (IntWritable values : value) {
-//				sum += 1;
-//			}
-//			context.write(new Text(key), new IntWritable(sum));
+//    public static class Combine extends Reducer<Text, IntWritable, Text, Text> {
+////		input: <word, filename>, 1
+////		output: word, <filename, n>
+//        private Text info = new Text();
+//        public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+//            int sum = 0;
+//            for (IntWritable value : values) {
+//                sum += 1;
+//            }
+//            int splitIndex = key.toString().indexOf(",");
+//            key.set(key.toString().substring(0, splitIndex));
+//            info.set(key.toString().substring(splitIndex + 1) + " : " + sum);
+//            context.write(key, info);
+//        }
+//    }
+// 
+//	public static class IntSumReducer extends Reducer<Text, Text, Text, Text> {
+//		private Text fileList = new Text();
+//		public void reduce(Text key, Iterable<Text> value, Context context) throws IOException, InterruptedException {
+//	        String result = new String();
+//            for (Text filePair : value) {
+//            	result += filePair.toString() + "; ";
+//            } 
+//            fileList.set(result);
+//			context.write(new Text(key), fileList);
 //		}
 //	}
+	
+	public static class IntSumReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
+		 
+		public void reduce(Text key, Iterable<IntWritable> value, Context context)
+				throws IOException, InterruptedException {
+ 
+			int sum = 0;
+			for (IntWritable values : value) {
+ 
+				sum += 1;
+ 
+			}
+ 
+			context.write(new Text(key), new IntWritable(sum));
+ 
+		}
+	}
  
 	public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
 		
@@ -144,11 +148,11 @@ public class InvertedIndices {
 		job.setJarByClass(InvertedIndices.class);
 		job.setMapperClass(TokenizerMapper.class);
 		job.setMapOutputKeyClass(Text.class);
-		job.setMapOutputValueClass(Text.class);
-		job.setCombinerClass(Combine.class);
+		job.setMapOutputValueClass(IntWritable.class);
+//		job.setCombinerClass(Combine.class);
 		job.setReducerClass(IntSumReducer.class);
 		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(Text.class);
+		job.setOutputValueClass(IntWritable.class);
 		job.setNumReduceTasks(1);
 //		job.setSortComparatorClass(myComparator.class);
 	    FileInputFormat.addInputPath(job, new Path(otherArgs.get(0)));

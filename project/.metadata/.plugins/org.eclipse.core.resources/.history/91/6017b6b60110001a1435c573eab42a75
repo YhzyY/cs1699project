@@ -63,7 +63,7 @@ public class InvertedIndices {
 //        }
 //    }
 
-	public static class TokenizerMapper extends Mapper<Object, Text, Text, Text> {
+	public static class TokenizerMapper extends Mapper<Object, Text, Text, IntWritable> {
 //		input: the content of the file
 //		output: <word, filename>, 1
 		private FileSplit split;
@@ -79,19 +79,19 @@ public class InvertedIndices {
 			list.removeAll(Arrays.asList("", null));
 			for (String word : list) {
 				newKey.set(word + "," + filename);
-				context.write(newKey, new Text("1"));
+				context.write(newKey, new IntWritable(1));
 			}
 		}
 	}
 	
-    public static class Combine extends Reducer<Text, Text, Text, Text> {
+    public static class Combine extends Reducer<Text, IntWritable, Text, Text> {
 //		input: <word, filename>, 1
 //		output: word, <filename, n>
         private Text info = new Text();
-        public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+        public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
             int sum = 0;
-            for (Text value : values) {
-            	sum += Integer.parseInt(value.toString());
+            for (IntWritable value : values) {
+                sum += 1;
             }
             String[] splitIndex = key.toString().split(",");
             String word = splitIndex[0];
