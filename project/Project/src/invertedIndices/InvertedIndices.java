@@ -74,7 +74,7 @@ public class InvertedIndices {
 			int splitIndex = split.getPath().toString().indexOf("file");
 			String filename = split.getPath().toString().substring(splitIndex);
 //			get word list
-			String[] products = value.toString().split("\\[|\\,|/|\\;|:|\\?|!|\\.|-|\\)|\\'|\\]|\\s+");
+			String[] products = value.toString().split("\\[|\\,|/|\\;|:|\\?|!|\\.|-|\\)|\\(|\\'|\"|\\*|\\$|\\]|=|\\s+");
 			List<String> list = new ArrayList<String>(Arrays.asList(products));
 			list.removeAll(Arrays.asList("", null));
 			for (String word : list) {
@@ -96,7 +96,7 @@ public class InvertedIndices {
             String[] splitIndex = key.toString().split(",");
             String word = splitIndex[0];
             String filename = splitIndex[1];
-            info.set(filename.toString() + " : " + sum);
+            info.set(filename.toString() + ": " + sum+ " ");
             context.write(new Text(word.toString()), info);
         }
     }
