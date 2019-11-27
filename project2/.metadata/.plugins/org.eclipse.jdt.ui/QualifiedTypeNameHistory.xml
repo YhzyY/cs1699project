@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+    <fullyQualifiedTypeName name="org.apache.hadoop.io.ArrayWritable"/>
+    <fullyQualifiedTypeName name="org.apache.hadoop.io.BooleanWritable.Comparator"/>
+    <fullyQualifiedTypeName name="org.apache.hadoop.mapreduce.lib.input.FileSplit"/>
+    <fullyQualifiedTypeName name="org.apache.hadoop.io.IntWritable"/>
+    <fullyQualifiedTypeName name="org.apache.hadoop.io.WritableComparable"/>
+    <fullyQualifiedTypeName name="org.apache.hadoop.io.IntWritable.Comparator"/>
+    <fullyQualifiedTypeName name="java.util.TreeMap"/>
+    <fullyQualifiedTypeName name="org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat"/>
+    <fullyQualifiedTypeName name="org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat"/>
+    <fullyQualifiedTypeName name="org.apache.hadoop.fs.FileSystem"/>
+    <fullyQualifiedTypeName name="org.apache.hadoop.mapreduce.lib.map.InverseMapper"/>
+</qualifiedTypeNameHistroy>

@@ -1,0 +1,24 @@
+package invertedIndices;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class test {
+
+	public static void main(String[] args){
+		String value = "This eBook is for the use of anyone anywhere at no cost and with almost no restrictions whatsoever.  You may copy it, give it away or re-use it under the terms of the Project Gutenberg License included with this eBook or online at www.gutenberg.net";
+		String[] products = value.toString().split(":\\,\\.\\;\\s+");
+		String[] split = value.toString().split("\\s+");
+		System.out.println(split.length);
+		List<String> alist = new ArrayList<String>(Arrays.asList(products));
+		
+		alist.removeAll(Arrays.asList("", null));
+		for (String word : alist) {
+			List<String> outkey = Arrays.asList("filename", word);
+			System.out.println(outkey.size());
+		}
+
+	}
+	
+}
