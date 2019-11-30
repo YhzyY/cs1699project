@@ -63,9 +63,11 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -87,31 +89,36 @@ public class communication {
 	
 	public static Storage storage;
 	public static String bucketName = "dataproc-effe9cb0-28c9-4f0d-94d4-13f79e57af23-us-west2";
-//	public static String topNFile = "output2/output2.txt";
-	public static String indicesFile = "output/part-r-00000";
-	public static String topNFile = "output2/part-r-00000";
+	public static String indicesFile = "output3/part-r-00000";
+	public static String topNFile = "output4/part-r-00000";
 	public static List<String> allFile = new ArrayList<String>();
+	
+	public static String indiciesJar = "gs://dataproc-effe9cb0-28c9-4f0d-94d4-13f79e57af23-us-west2/JAR/jar16.jar";
+	public static String topNJar = "gs://dataproc-effe9cb0-28c9-4f0d-94d4-13f79e57af23-us-west2/TOPJAR/top13.jar";
+	public static String filesFolder = "gs://dataproc-effe9cb0-28c9-4f0d-94d4-13f79e57af23-us-west2/files";
+	public static String indiciesFolder = "gs://dataproc-effe9cb0-28c9-4f0d-94d4-13f79e57af23-us-west2/output3";
+	public static String topNFolder = "gs://dataproc-effe9cb0-28c9-4f0d-94d4-13f79e57af23-us-west2/output4";
 	
 	
 	public void StorageSnippets(Storage storage) {
 		    this.storage = storage;
 	
 	}
-	public static Page<Bucket> authListBuckets() throws FileNotFoundException, IOException {
-		Page<Bucket> buckets = storage.list();
-		for (Bucket bucket : buckets.iterateAll()) {
-			System.out.println(bucket.toString());
-			System.out.println(bucket.getLocation());
-			System.out.println(bucket.get("output2/part-r-00000"));
-			if((bucket.getLocation()).toString() == "US-WEST2".toString()) {
-				bucketName = bucket.getName();
-				System.out.println("!!");
-			}
-	    }
-	    // [END auth_cloud_implicit]
-	    return buckets;
-	}
-	
+//	public static Page<Bucket> authListBuckets() throws FileNotFoundException, IOException {
+//		Page<Bucket> buckets = storage.list();
+//		for (Bucket bucket : buckets.iterateAll()) {
+//			System.out.println(bucket.toString());
+//			System.out.println(bucket.getLocation());
+//			System.out.println(bucket.get("output2/part-r-00000"));
+//			if((bucket.getLocation()).toString() == "US-WEST2".toString()) {
+//				bucketName = bucket.getName();
+//				System.out.println("!!");
+//			}
+//	    }
+//	    // [END auth_cloud_implicit]
+//	    return buckets;
+//	}
+//	
 	public static Blob getBlobFromId(String bucketName, String blobName) {
 		    // [START getBlobFromId]
 		    BlobId blobId = BlobId.of(bucketName, blobName);
@@ -119,6 +126,21 @@ public class communication {
 		    // [END getBlobFromId]
 		    return blob;
 	 }
+	  
+	  public static boolean deleteBlob(String bucketName, String blobName) {
+		    // [START deleteBlob]
+		    BlobId blobId = BlobId.of(bucketName, blobName);
+		    boolean deleted = storage.delete(blobId);
+		    if (deleted) {
+		    	// the blob was deleted
+		    	System.out.println("delete "+ blobName + " successfully");
+		    } else {
+		    	// the blob was not found
+		    	System.out.println(blobName + " not found");
+		    }
+		    // [END deleteBlob]
+		    return deleted;
+		  }
 	  
 	private static void getFile(File file) {
 		File[] fs = file.listFiles();
@@ -173,36 +195,6 @@ public class communication {
 	}
 	
 	
-	
-//    public Submit submit(java.lang.String projectId, java.lang.String region, com.google.api.services.dataproc.model.SubmitJobRequest content) throws java.io.IOException {
-//        Submit result = new Submit(projectId, region, content);
-//        initialize(result);
-//        return result;
-//      }
-//    public class Submit extends DataprocRequest<com.google.api.services.dataproc.model.Job> {
-//    	private static final String REST_PATH = "v1/projects/{projectId}/regions/{region}/jobs:submit";
-//
-//        protected Submit(java.lang.String projectId, java.lang.String region, com.google.api.services.dataproc.model.SubmitJobRequest content) {
-//            super(Dataproc.this, "POST", REST_PATH, content, com.google.api.services.dataproc.model.Job.class);
-//            this.projectId = com.google.api.client.util.Preconditions.checkNotNull(projectId, "Required parameter projectId must be specified.");
-//            this.region = com.google.api.client.util.Preconditions.checkNotNull(region, "Required parameter region must be specified.");
-//          }
-//        /** Required. The ID of the Google Cloud Platform project that the job belongs to. */
-//        @com.google.api.client.util.Key
-//        private java.lang.String projectId;
-//        
-//        /** Required. The ID of the Google Cloud Platform project that the job belongs to. */
-//        public Submit setProjectId(java.lang.String projectId) {
-//          this.projectId = projectId;
-//          return this;
-//        }
-//        /** Required. The Cloud Dataproc region in which to handle the request. */
-//        @com.google.api.client.util.Key
-//        private java.lang.String region;
-//    	
-//    }
-	
-	
 //	 read content from the bucket
 	public static List readerFromStrings(String bucketName, String blobName) throws IOException {
 		  List<String> content = new ArrayList();
@@ -230,53 +222,73 @@ public class communication {
 		String term;
 //		System.out.println(termList.size());
 		for(int i = 0; i< termList.size(); i++) {
-//			System.out.println(termList.get(i).toString());
-			cut = termList.get(i).toString().indexOf("files/");
-			if(cut == -1) continue;
-			tempPair[0] = termList.get(i).toString().substring(0, cut);
-			term = tempPair[0].split("\\s+")[0];
-			tempPair[1] = termList.get(i).toString().substring(cut);
-			if((term != null) & (term != "")) {
-				map.put(term, tempPair[1]);
+			try {
+//				System.out.println(termList.get(i).toString());
+				cut = termList.get(i).toString().indexOf("files/");
+				if(cut == -1) continue;
+				tempPair[0] = termList.get(i).toString().substring(0, cut);
+				term = tempPair[0].split("\\s+")[0];
+				tempPair[1] = termList.get(i).toString().substring(cut);
+				if((term != null) & (term != "")) {
+					map.put(term, tempPair[1]);
+				}			
 			}
+			catch(Exception e){
+				continue;
+			}
+			
 		}
 		return map;
 	  }
 
-	public static void main(String[] args) throws FileNotFoundException, IOException {
+	public static void main(String[] args) throws FileNotFoundException, IOException, InterruptedException {
 		// If you don't specify credentials when constructing the client, the
 		// client library will look for credentials in the environment.
 		Credentials credentials = GoogleCredentials.fromStream(new FileInputStream("/Users/ziyi/document/gcloud/MyFirstProject-03009f1d294c.json"));
 		storage = StorageOptions.newBuilder().setCredentials(credentials).build().getService();
+        File f = new File("/Users/ziyi/document/cs1699/project/log.txt");
+        FileOutputStream fop = new FileOutputStream(f);
+        OutputStreamWriter writer = new OutputStreamWriter(fop, "UTF-8");
+        
+		long startTime;
+		long endTime;
+		long TotalTime;
 		
 //		Page<Bucket> buckets = authListBuckets();
 //		System.out.println(buckets);
-//		Blob mybolb = getBlobFromId(bucketName,topNFile);
-
-//		System.out.println(termMap.get("violence"));
 //	    Bucket bucket = storage.create(BucketInfo.of("bucketname"));
 //	    System.out.printf("Bucket %s created.%n", bucket.getName());
-	
-////		upload files to the GCP bucket
-//		String path = "/Users/ziyi/document/cs1699/project/data/Hugo";
-//		File file = new File(path);
-//		getFile(file);
-//		String fileContent, fileName, bolbName;
-//		int fileNameIndex;
-//		for(int m = 0; m < allFile.size(); m++) {
-//			System.out.println(allFile.get(m));
-//			fileNameIndex = allFile.get(m).lastIndexOf('/')+1;
-//			if(fileNameIndex == -1) fileNameIndex = 0;
-//			fileName = allFile.get(m).substring(fileNameIndex);
-//			bolbName = "files/"+fileName;
-//			fileContent = readFile(allFile.get(m));
-//			
-//			writer(bucketName, bolbName, fileContent);
-//		}
+
+//		upload files to the GCP bucket
+		writer.append("uploading files...\r\n");
+		startTime = System.currentTimeMillis();
 		
+		String path = "/Users/ziyi/document/cs1699/project/data/shakespeare";
+		File file = new File(path);
+		getFile(file);
+		String fileContent, fileName, bolbName;
+		int fileNameIndex;
+		for(int m = 0; m < allFile.size(); m++) {
+			System.out.println(allFile.get(m));
+			fileNameIndex = allFile.get(m).lastIndexOf('/')+1;
+			if(fileNameIndex == -1) fileNameIndex = 0;
+			fileName = allFile.get(m).substring(fileNameIndex);
+			bolbName = "files/"+fileName;
+			fileContent = readFile(allFile.get(m));
+			
+			writer(bucketName, bolbName, fileContent);
+		}
 		
+		endTime  = System.currentTimeMillis();
+		TotalTime = endTime - startTime; 
+		writer.append("The time used to upload files is " + TotalTime +" ms \r\n");
+		writer.append("\r\n");
 		
+
 //		construct inverted indicies
+		writer.append("Constructing inverted indicies...\r\n");
+		startTime = System.currentTimeMillis();
+			
 		GoogleCredential credential = GoogleCredential.fromStream(new FileInputStream("/Users/ziyi/document/gcloud/MyFirstProject-03009f1d294c.json"))
 			    .createScoped(Collections.singleton(DataprocScopes.CLOUD_PLATFORM));
 		String projectId = "inlaid-subset-259218";
@@ -289,8 +301,8 @@ public class communication {
 			    		.setPlacement(new JobPlacement()
 			    				.setClusterName("cs1699project"))
 			    		.setHadoopJob(new HadoopJob()
-			    				.setMainJarFileUri("gs://dataproc-effe9cb0-28c9-4f0d-94d4-13f79e57af23-us-west2/JAR/jar16.jar")
-			            		.setArgs(ImmutableList.of("gs://dataproc-effe9cb0-28c9-4f0d-94d4-13f79e57af23-us-west2/files","gs://dataproc-effe9cb0-28c9-4f0d-94d4-13f79e57af23-us-west2/output3"))
+			    				.setMainJarFileUri(indiciesJar)
+			            		.setArgs(ImmutableList.of(filesFolder,indiciesFolder))
 			            		)))
 		.execute();
 		
@@ -300,46 +312,83 @@ public class communication {
 			    		.setPlacement(new JobPlacement()
 			    				.setClusterName("cs1699project"))
 			    		.setHadoopJob(new HadoopJob()
-			    				.setMainJarFileUri("gs://dataproc-effe9cb0-28c9-4f0d-94d4-13f79e57af23-us-west2/TOPJAR/top13.jar")
-			            		.setArgs(ImmutableList.of("gs://dataproc-effe9cb0-28c9-4f0d-94d4-13f79e57af23-us-west2/files","gs://dataproc-effe9cb0-28c9-4f0d-94d4-13f79e57af23-us-west2/output4"))
+			    				.setMainJarFileUri(topNJar)
+			            		.setArgs(ImmutableList.of(filesFolder,topNFolder))
 			            		)))
 		.execute();
 		
 		
-////		analyze output
-//		List topN = readerFromStrings(bucketName, topNFile);
-//		List termList = readerFromStrings(bucketName, indicesFile);
-//		Map<String, String> termMap = termMap(termList);	
+//		check whether the jobs are finished
+		Blob indicesbolb = getBlobFromId(bucketName,indicesFile);
+		Blob topNbolb = getBlobFromId(bucketName,topNFile);
+ 		while((indicesbolb == null) | (topNbolb == null)){
+// 			TimeUnit.MINUTES.sleep(1);
+ 			TimeUnit.SECONDS.sleep(30);
+ 			indicesbolb = getBlobFromId(bucketName,indicesFile);
+			topNbolb = getBlobFromId(bucketName,topNFile);
+			System.out.println(topNbolb + "  " + indicesbolb);
+		}
+ 		System.out.println("jobs finished");
+ 		
 		
-//// 		Create a Scanner object
-//		Scanner myObj = new Scanner(System.in); 
-////		get command from user
-//		while (true) {
-//		    System.out.println("Type \"search\" to search a term; Type \"TopN\" to find topN term; type \"exit\" to exit the system");
-//		    String command = myObj.nextLine();  // Read user input
-//		    if(command.contentEquals("search")) {
-//		    	System.out.println("the word you want to search:");
-//		    	String searchTerm = myObj.nextLine();
-//		    	System.out.println(termMap.get(searchTerm));
-//		    }else if(command.contentEquals("topN")) {
-//		    	System.out.println("the value of N:");
-//		    	int N = Integer.parseInt(myObj.nextLine());
-//		    	if((N <= 0 ) || (N > topN.size())) {
-//		    		System.out.println("N should be between 1 and "+ topN.size());
-//		    		continue;
-//		    	}
-////		    	System.out.println(topN.subList(0, N));
-//		    	 for(int n = 0;n < N;n++){   
-//		    	       System.out.println(topN.get(n));
-//		    	   }   
-//		    }else if(command.contentEquals("exit")) {
-//		    	System.out.println("exit the system");
-//		    	break;
-//		    }else {
-//		    	continue;
-//		    }
-//		}
-//		myObj.close();
+//		analyze output
+		List topN = readerFromStrings(bucketName, topNFile);
+		List termList = readerFromStrings(bucketName, indicesFile);
+		Map<String, String> termMap = termMap(termList);	
+		
+		endTime   = System.currentTimeMillis(); //程序结束记录时间
+		TotalTime = endTime - startTime; 
+		writer.append("The time used to construct inverted indicies is " + TotalTime +" ms \r\n");
+		writer.append("\r\n");
+		
+// 		Create a Scanner object
+		Scanner myObj = new Scanner(System.in); 
+//		get command from user
+		while (true) {
+		    System.out.println("Type \"search\" to search a term; Type \"TopN\" to find topN term; type \"exit\" to exit the system");
+		    String command = myObj.nextLine();  // Read user input
+		    if(command.contentEquals("search")) {
+		    	System.out.println("the word you want to search:");
+		    	String searchTerm = myObj.nextLine();
+				writer.append("Searching word \"" + searchTerm + "\"...\r\n");
+				startTime = System.currentTimeMillis();
+		    	System.out.println(termMap.get(searchTerm));
+				endTime   = System.currentTimeMillis();
+				TotalTime = endTime - startTime; 
+				writer.append("The time used to search \"" + searchTerm + "\" is " + TotalTime +" ms \r\n");
+				writer.append("\r\n");
+		    }else if(command.contentEquals("topN")) {
+		    	System.out.println("the value of N:");
+		    	int N = Integer.parseInt(myObj.nextLine());
+		    	writer.append("getting top" + N + " ...\r\n");
+		    	startTime = System.currentTimeMillis();
+		    	if((N <= 0 ) || (N > topN.size())) {
+		    		System.out.println("N should be between 1 and "+ topN.size());
+		    		writer.append("N out of range : " + N + " ...\r\n");
+		    		writer.append("\r\n");
+		    		continue;
+		    	}
+//		    	System.out.println(topN.subList(0, N));
+		    	 for(int n = 0;n < N;n++){   
+		    	       System.out.println(topN.get(n));
+		    	   }   
+		 		endTime   = System.currentTimeMillis(); //程序结束记录时间
+				TotalTime = endTime - startTime; 
+				writer.append("The time used to find top"+ N + " is " + TotalTime +" ms \r\n");
+				writer.append("\r\n");
+		    }else if(command.contentEquals("exit")) {
+		    	System.out.println("exit the system");
+		    	writer.append("exit");
+		    	writer.append("\r\n");
+		    	break;
+		    }else {
+		    	continue;
+		    }
+		}
+		
+		myObj.close();
+		writer.close();
+		fop.close();
 
 	}
 
