@@ -93,6 +93,7 @@ public class communication {
 	public static String topNFile = "output4/part-r-00000";
 	public static List<String> allFile = new ArrayList<String>();
 	
+	public static String filePath = "";
 	public static String indiciesJar = "gs://dataproc-effe9cb0-28c9-4f0d-94d4-13f79e57af23-us-west2/JAR/jar16.jar";
 	public static String topNJar = "gs://dataproc-effe9cb0-28c9-4f0d-94d4-13f79e57af23-us-west2/TOPJAR/top13.jar";
 	public static String filesFolder = "gs://dataproc-effe9cb0-28c9-4f0d-94d4-13f79e57af23-us-west2/files";
@@ -143,22 +144,28 @@ public class communication {
 		  }
 	  
 	private static void getFile(File file) {
-		File[] fs = file.listFiles();
-		for(File f:fs){
-			if((f.toString().substring(f.toString().length()-9)).equalsIgnoreCase(".DS_Store") ) {
-				continue;
+		try {
+			File[] fs = file.listFiles();
+			for(File f:fs){
+				if((f.toString().substring(f.toString().length()-9)).equalsIgnoreCase(".DS_Store") ) {
+					continue;
+				}
+				if(f.isDirectory()) {
+					getFile(f);
+				}
+				else if(f.isFile()) {
+					allFile.add(f.toString());
+				}else {
+					System.out.println("neither a folder nor a file");
+					continue;
+				}
 			}
-			if(f.isDirectory()) {
-				getFile(f);
-			}
-			else if(f.isFile()) {
-				allFile.add(f.toString());
-			}else {
-				System.out.println("neither a folder nor a file");
-				continue;
-			}
+//			System.out.println(allFile.size());
+		}catch (Exception e) {
+			System.out.println("invalid path");
+			System.exit(1);
 		}
-//		System.out.println(allFile.size());
+
 	}
 	
 //	 read content from target file
@@ -254,6 +261,9 @@ public class communication {
 		long endTime;
 		long TotalTime;
 		
+// 		Create a Scanner object
+		Scanner myObj = new Scanner(System.in);
+		
 //		Page<Bucket> buckets = authListBuckets();
 //		System.out.println(buckets);
 //	    Bucket bucket = storage.create(BucketInfo.of("bucketname"));
@@ -262,9 +272,11 @@ public class communication {
 //		upload files to the GCP bucket
 		writer.append("uploading files...\r\n");
 		startTime = System.currentTimeMillis();
-		
-		String path = "/Users/ziyi/document/cs1699/project/data/shakespeare";
-		File file = new File(path);
+		System.out.println("the files you want to upload:");
+		filePath = myObj.nextLine().toString();
+		writer.append("files to upload : " + filePath + " \r\n");
+//		String filePath = "/Users/ziyi/document/cs1699/project/data/shakespeare";
+		File file = new File(filePath);
 		getFile(file);
 		String fileContent, fileName, bolbName;
 		int fileNameIndex;
@@ -335,14 +347,14 @@ public class communication {
 		List topN = readerFromStrings(bucketName, topNFile);
 		List termList = readerFromStrings(bucketName, indicesFile);
 		Map<String, String> termMap = termMap(termList);	
+		String[] termsInFile;
 		
 		endTime   = System.currentTimeMillis(); //程序结束记录时间
 		TotalTime = endTime - startTime; 
 		writer.append("The time used to construct inverted indicies is " + TotalTime +" ms \r\n");
 		writer.append("\r\n");
 		
-// 		Create a Scanner object
-		Scanner myObj = new Scanner(System.in); 
+ 
 //		get command from user
 		while (true) {
 		    System.out.println("Type \"search\" to search a term; Type \"TopN\" to find topN term; type \"exit\" to exit the system");
@@ -352,7 +364,19 @@ public class communication {
 		    	String searchTerm = myObj.nextLine();
 				writer.append("Searching word \"" + searchTerm + "\"...\r\n");
 				startTime = System.currentTimeMillis();
-		    	System.out.println(termMap.get(searchTerm));
+
+				try {
+					termsInFile = termMap.get(searchTerm).split(";");
+					for(int num = 0; num < termsInFile.length; num ++) {
+						System.out.println(termsInFile[num]);
+					}
+				}catch (Exception e) {
+					System.out.println("no such word in files");
+					continue;
+				}
+				
+				
+//		    	System.out.println(termMap.get(searchTerm));
 				endTime   = System.currentTimeMillis();
 				TotalTime = endTime - startTime; 
 				writer.append("The time used to search \"" + searchTerm + "\" is " + TotalTime +" ms \r\n");

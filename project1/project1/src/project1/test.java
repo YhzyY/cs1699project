@@ -55,8 +55,6 @@ public class test {
 		writer.close();
 		fop.close();
 		
-		String term = " ".split("\\s+")[0];
-		System.out.println(term);
 	}
 
 }
