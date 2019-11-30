@@ -1,4 +1,0 @@
-INDEX VERSION 1.131+/Users/ziyi/document/CS1699/project/project/.metadata/.plugins/org.eclipse.jdt.core
-941005215.index
-1656955494.index
-2345538019.index

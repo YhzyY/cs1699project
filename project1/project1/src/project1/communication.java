@@ -30,31 +30,7 @@ import com.google.cloud.storage.Acl.User;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
-import com.google.cloud.storage.Bucket;
-import com.google.cloud.storage.BucketInfo;
-import com.google.cloud.storage.CopyWriter;
-import com.google.cloud.storage.HmacKey;
-import com.google.cloud.storage.HmacKey.HmacKeyMetadata;
-import com.google.cloud.storage.HmacKey.HmacKeyState;
-import com.google.cloud.storage.HttpMethod;
-import com.google.cloud.storage.ServiceAccount;
 import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.Storage.BlobGetOption;
-import com.google.cloud.storage.Storage.BlobListOption;
-import com.google.cloud.storage.Storage.BlobSourceOption;
-import com.google.cloud.storage.Storage.BlobTargetOption;
-import com.google.cloud.storage.Storage.BucketField;
-import com.google.cloud.storage.Storage.BucketGetOption;
-import com.google.cloud.storage.Storage.BucketListOption;
-import com.google.cloud.storage.Storage.BucketSourceOption;
-import com.google.cloud.storage.Storage.ComposeRequest;
-import com.google.cloud.storage.Storage.CopyRequest;
-import com.google.cloud.storage.Storage.ListHmacKeysOption;
-import com.google.cloud.storage.Storage.SignUrlOption;
-import com.google.cloud.storage.StorageBatch;
-import com.google.cloud.storage.StorageBatchResult;
-import com.google.cloud.storage.StorageClass;
-import com.google.cloud.storage.StorageException;
 import com.google.cloud.storage.StorageOptions;
 import com.google.common.collect.ImmutableList;
 
@@ -297,7 +273,7 @@ public class communication {
 		writer.append("\r\n");
 		
 
-//		construct inverted indicies
+//		construct inverted indices
 		writer.append("Constructing inverted indicies...\r\n");
 		startTime = System.currentTimeMillis();
 			
